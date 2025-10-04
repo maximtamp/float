@@ -1,6 +1,6 @@
 import * as THREE from 'https://unpkg.com/three@0.169.0/build/three.module.js';
 import seaVertexShader from '../shaders/sea/vertex.glsl?raw';
-import seaFragmentShader from '../shaders/sea/fragmentTopCam.glsl?raw';
+import seaFragmentShader from '../shaders/sea/fragment.glsl?raw';
 
 export const uniforms = {
     iTime: { value: 0 },
@@ -9,7 +9,7 @@ export const uniforms = {
 };
 
 export const createSea = () => {
-    const geom = new THREE.PlaneGeometry(window.innerWidth, window.innerHeight, 256, 256);
+    const geom = new THREE.PlaneGeometry(2000, 2000, 500, 500);
     geom.rotateX(Math.PI / 2);
 
     const mat = new THREE.RawShaderMaterial({

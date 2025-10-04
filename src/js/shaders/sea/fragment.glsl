@@ -1,11 +1,13 @@
-
 precision highp float;
 
-      uniform vec2 iResolution;
-      uniform float iTime;
-      uniform vec3 uBoatPosition;
-      varying vec2 vUv;
-varying vec3 vPosition;
+uniform vec2 iResolution;
+uniform float iTime;
+
+in vec2 vUv;
+in vec3 vPosition;
+in float vWaveHeight;
+
+out vec4 fragColor; 
       
       // "Seascape" by Alexander Alekseev aka TDM - 2014
       // License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
@@ -83,50 +85,37 @@ varying vec3 vPosition;
       }
 
       float map(vec3 p) {
-    float freq = SEA_FREQ;
-    float amp = SEA_HEIGHT;
-    float choppy = SEA_CHOPPY;
-    vec2 uv = p.xz; uv.x *= 0.75;
+        float freq = SEA_FREQ;
+        float amp = SEA_HEIGHT;
+        float choppy = SEA_CHOPPY;
+        vec2 uv = p.xz; uv.x *= 0.75;
 
-    // afstand tot boot
-    float distToBoat = length(uv - uBoatPosition.xz);
-    float boatEffect = exp(-distToBoat*0.1); // golven iets omhoog rond boot
-
-    float d, h = 0.0;
-    for(int i = 0; i < ITER_GEOMETRY; i++) {
-        d = sea_octave((uv+SEA_TIME)*freq,choppy);
-        d += sea_octave((uv-SEA_TIME)*freq,choppy);
-        h += d * amp;
-        uv *= octave_m; freq *= 1.9; amp *= 0.22;
-        choppy = mix(choppy,1.0,0.2);
-    }
-
-    h += boatEffect * 0.5; // boost rond boot
-    return p.y - h;
-}
-
+        float d, h = 0.0;
+        for(int i = 0; i < ITER_GEOMETRY; i++) {
+        	d = sea_octave((uv+SEA_TIME)*freq,choppy);
+        	d += sea_octave((uv-SEA_TIME)*freq,choppy);
+          h += d * amp;
+        	uv *= octave_m; freq *= 1.9; amp *= 0.22;
+          choppy = mix(choppy,1.0,0.2);
+        }
+        return p.y - h;
+      }
 
       float map_detailed(vec3 p) {
         float freq = SEA_FREQ;
-    float amp = SEA_HEIGHT;
-    float choppy = SEA_CHOPPY;
-    vec2 uv = p.xz; uv.x *= 0.75;
+        float amp = SEA_HEIGHT;
+        float choppy = SEA_CHOPPY;
+        vec2 uv = p.xz; uv.x *= 0.75;
 
-    // afstand tot boot
-    float distToBoat = length(uv - uBoatPosition.xz);
-    float boatEffect = exp(-distToBoat*0.1); // golven iets omhoog rond boot
-
-    float d, h = 0.0;
-    for(int i = 0; i < ITER_GEOMETRY; i++) {
-        d = sea_octave((uv+SEA_TIME)*freq,choppy);
-        d += sea_octave((uv-SEA_TIME)*freq,choppy);
-        h += d * amp;
-        uv *= octave_m; freq *= 1.9; amp *= 0.22;
-        choppy = mix(choppy,1.0,0.2);
-    }
-
-    h += boatEffect * 0.5; // boost rond boot
-    return p.y - h;
+        float d, h = 0.0;
+        for(int i = 0; i < ITER_FRAGMENT; i++) {
+        	d = sea_octave((uv+SEA_TIME)*freq,choppy);
+        	d += sea_octave((uv-SEA_TIME)*freq,choppy);
+            h += d * amp;
+        	uv *= octave_m; freq *= 1.9; amp *= 0.22;
+            choppy = mix(choppy,1.0,0.2);
+        }
+        return p.y - h;
       }
 
       vec3 getSeaColor(vec3 p, vec3 n, vec3 l, vec3 eye, vec3 dist) {
@@ -189,10 +178,11 @@ varying vec3 vPosition;
 
         // ray (camera)
         // vec3 ang = vec3(sin(time*3.0)*0.1,sin(time)*0.2+0.3,time);
+        // vec3 ang = vec3(0.0, PI/2.0, 0.0);
         vec3 ang = vec3(0.0, 0.0, 0.0);
-        // vec3 ori = vec3(0.0,3.5,time*5.0);
-        vec3 ori = vec3(0.0,3.5,0.0);
-        vec3 dir = normalize(vec3(uv.xy,-2.0)); dir.z += length(uv) * 0.14;
+        //vec3 ori = vec3(0.0,3.5,time*5.0);
+        vec3 ori = vec3(uv.x * 5.0, 5.0, uv.y * 5.0);
+        vec3 dir = vec3(0.0, -1.0, 0.0);
         dir = normalize(dir) * fromEuler(ang);
 
         // tracing
@@ -212,7 +202,9 @@ varying vec3 vPosition;
 
       // main
       void main() {
-        vec2 fragCoord = (vPosition.xz + 50.0) * (iResolution.x / 100.0); // Scale to screen-like coordinates
-        vec3 color = getPixel(fragCoord, iTime*0.3);
-        gl_FragColor = vec4(color, 1.0);
-      }
+    vec2 fragCoord = (vPosition.xz + 50.0) * (iResolution.x / 100.0);
+    vec3 color = getPixel(fragCoord, iTime*0.3);
+    float highlight = smoothstep(1.0, 2.0, vWaveHeight);
+color += vec3(0.01, 0.3, 0.15) * highlight * 0.13;
+    fragColor = vec4(color, 1.0);
+}
