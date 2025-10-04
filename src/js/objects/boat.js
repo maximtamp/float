@@ -1,23 +1,6 @@
 import * as THREE from 'https://unpkg.com/three@0.169.0/build/three.module.js';
 
-export const createBoat = (score = 0) => {
-    /*
-    const geom = new THREE.BoxGeometry(20, 40, 20);
-
-    geom.rotateX(Math.PI / 2);
-
-    const mat = new THREE.MeshPhongMaterial({
-        color: 0x333333,
-        flatShading: true
-    });
-
-    const mesh = new THREE.Mesh(geom, mat);
-    mesh.receiveShadow = true;
-
-    return {
-        mesh
-    }
-        */
+export const createBoat = (score = 0, colectedContainerColors) => {
 
     const mesh = new THREE.Object3D();
 
@@ -46,14 +29,32 @@ export const createBoat = (score = 0) => {
     console.receiveShadow = true;
     mesh.add(console);
 
-    const containerColors = ["#3751cf", "#d2760e", "#a31010"]
-
     for (let i = 0; i < score; i++) {
-        const geomcontainer = new THREE.BoxGeometry(12, 6, 6, 1, 1, 1);
-        const matcontainer = new THREE.MeshPhongMaterial({ color: containerColors[i], flatShading: true });
+        const geomcontainer = new THREE.BoxGeometry(8, 3, 3, 1, 1, 1);
+        const matcontainer = new THREE.MeshPhongMaterial({ color: colectedContainerColors[i], flatShading: true });
         const container = new THREE.Mesh(geomcontainer, matcontainer);
-        container.position.y = 5;
-        container.position.z = -12 + 8 * i;
+        if (i < 6 || i > 11 && i < 18){
+            container.position.x = -5;
+            if (i > 11 && i < 18){
+                container.position.z = -15 + 4 * (i - 12);
+            } else {
+                container.position.z = -15 + 4 * i;
+            }
+        } else {
+            container.position.x = 5;
+            if (i > 17) {
+                container.position.z = -15 + 4 * (i - 18);
+            } else {
+                container.position.z = -15 + (-4 *6) + 4 * i;
+            }
+        }
+
+        if(i < 12){
+            container.position.y = 4;
+        } else {
+            container.position.y = 7;
+        }
+
         container.castShadow = true;
         container.receiveShadow = true;
         mesh.add(container); 
