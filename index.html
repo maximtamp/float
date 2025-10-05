@@ -31,11 +31,55 @@
       height: 100%;
     }
 
-    #menu{
+    #menu, #gameOverMenu{
       position: fixed;
       backdrop-filter: blur(4px);
       width: 100%;
       height: 100%;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .menu__container, .game-over-menu__container{
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+
+      background-color: cornflowerblue;
+      padding: 4rem;
+    }
+
+    #sharkAlert{
+      position: fixed;
+      width: 100%;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+
+      color: white;
+
+      animation-name: alert;
+      animation-duration: 1s;
+      animation-iteration-count: infinite;
+    }
+
+    @keyframes alert{
+      from {opacity: 1;}
+      to {opacity: 0.5;}
+    }
+
+    #sharkAlert h2{
+      font-size: 5rem;
+    }
+
+    #sharkAlert p{
+      font-size: 3rem;
+      margin-top: -4rem;
     }
   </style>
   <script type="importmap">
@@ -45,14 +89,25 @@
       	}
       }
       </script>
-  <script type="module" crossorigin src="/float/assets/index-DlOipkIs.js"></script>
+  <script type="module" crossorigin src="/float/assets/index-BJs_ald3.js"></script>
 </head>
 
 <body>
   <section id="menu">
-    <section class="menu-container">
-      <p>play</p>
-      <button id="startButton">Start</button>
+    <section class="menu__container">
+      <h1>Float</h1>
+      <button id="startButton">Play</button>
+    </section>
+  </section>
+  <section id="sharkAlert" class="visually-hidden">
+    <h2>Shark Nearby</h2>
+    <p>Scare him away!</p>
+  </section>
+  <section id="gameOverMenu" class="visually-hidden">
+    <section class="game-over-menu__container">
+      <h2>Game Over</h2>
+      <p>Score: 0</p>
+      <button id="startButton">Play Again</button>
     </section>
   </section>
   <canvas id="c"></canvas>
