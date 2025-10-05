@@ -39,6 +39,19 @@ let shark = {
     TimeUntilActive: 10
 }
 
+const seaColors = {
+    default: {
+        waterBaseColor: "#093e74",
+        waterColor: "#63773c",
+        waterTopColor: "#135d23"
+    },
+    red: {
+        waterBaseColor: "#740909",
+        waterColor: "#ad2c2c",
+        waterTopColor: "#6d2222"
+    }
+}
+
 const containers = []
 const containerColors = ["#3751cf", "#d2760e", "#a31010", "#afafaf", "#dbdada"]
 const colectedContainerColors = []
@@ -70,6 +83,8 @@ const generateContainers = () => {
 }
 
 const init = () => {
+    getLocalStream() 
+
     seaMesh = createSea().mesh;
     seaMesh.receiveShadow = true
     scene.add(seaMesh);
@@ -188,21 +203,28 @@ const render = () => {
             shark.active = true;
             sharkMesh = createShark().mesh;
             sharkMesh.receiveShadow = true
-            sharkMesh.position.set((Math.random() - 0.5) * 1000, 3.5, (Math.random() - 0.5) * 1000)
+            sharkMesh.position.set(boatMesh.position.x + ((Math.random() - 0.5) * (250 - 100) + 100), 3.5, boatMesh.position.z + ((Math.random() - 0.5) * (250 - 100) + 100))
             scene.add(sharkMesh);
+            document.querySelector('#sharkAlert').classList.remove('visually-hidden')
         } else if (shark.active){
             const test = new THREE.Vector3(0, 0, -1);
             test.applyQuaternion(sharkMesh.quaternion);
             sharkMesh.lookAt(boatMesh.position);
             sharkMesh.position.add(test.clone().multiplyScalar(-0.5));
+            sharkMesh.rotation.z = Math.sin(elapsedTime) * 0.25;
     
-            const cameraOffset = new THREE.Vector3(0, 90, 120);
-            cameraOffset.applyQuaternion(boatMesh.quaternion);
-            camera.position.copy(boatMesh.position.clone().add(cameraOffset));
+            camera.position.x = boatMesh.position.x
+            camera.position.y = 150
+            camera.position.z = boatMesh.position.z
             camera.lookAt(boatMesh.position);
+
+            uniforms.waterBaseColor.value.set(seaColors.red.waterBaseColor)
+            uniforms.waterColor.value.set(seaColors.red.waterColor)
+            uniforms.waterTopColor.value.set(seaColors.red.waterTopColor)
     
             const sharkBox = new THREE.Box3().setFromObject(sharkMesh);
             if (boatBox.intersectsBox(sharkBox)){
+                document.querySelector('#sharkAlert').classList.add('visually-hidden')
                 setState("gameOver")
                 scene.remove(sharkMesh)
                 shark.active = false
@@ -240,11 +262,6 @@ const handleKeyDown = (e) => {
         if (e.key === "ArrowRight") {
             keyPressed.ArrowRight = true
         }
-        if (e.key === " " && shark.active) {
-            scene.remove(sharkMesh)
-            shark.active = false
-            shark.TimeUntilActive = elapsedTime * 1000 + (Math.random() * (12000 - 6000) + 6000)
-        }
     } else if (e.key === "Enter") {
         setState("game")
     }
@@ -273,6 +290,7 @@ const setState = (newState) => {
         document.querySelector('#menu').classList.remove('visually-hidden')
     } else if (state === "game") {
         document.querySelector('#menu').classList.add('visually-hidden')
+        document.querySelector('#gameOverMenu').classList.add('visually-hidden')
         shark.TimeUntilActive = elapsedTime * 1000 + (Math.random() * (12000 - 6000) + 6000)
         console.log(elapsedTime)
         score = 0
@@ -281,6 +299,9 @@ const setState = (newState) => {
         })
         containers.length = 0
         colectedContainerColors.length = 0
+        uniforms.waterBaseColor.value.set(seaColors.default.waterBaseColor)
+        uniforms.waterColor.value.set(seaColors.default.waterColor)
+        uniforms.waterTopColor.value.set(seaColors.default.waterTopColor)
 
         generateContainers()
        
@@ -290,7 +311,8 @@ const setState = (newState) => {
         boatMesh.rotation.set(0, 0, 0)
         scene.add(boatMesh)
     } else if (state === "gameOver") {
-        document.querySelector('#menu').classList.remove('visually-hidden')
+        document.querySelector('#gameOverMenu').classList.remove('visually-hidden')
+        document.querySelector('#gameOverMenu p').innerHTML = "Score: " + score
         keyPressed.ArrowUp = false
         keyPressed.ArrowDown = false
         keyPressed.ArrowLeft = false
@@ -302,6 +324,33 @@ const setState = (newState) => {
 
 const handleClickStart = () => {
     setState("game")
+}
+
+const getLocalStream = async () =>  {
+    /* https://jameshfisher.com/2021/01/18/measuring-audio-volume-in-javascript */
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    const audioContext = new AudioContext();
+    const mediaStreamAudioSourceNode = audioContext.createMediaStreamSource(stream);
+    const analyserNode = audioContext.createAnalyser();
+    mediaStreamAudioSourceNode.connect(analyserNode);
+
+    const pcmData = new Float32Array(analyserNode.fftSize);
+    const onFrame = () => {
+        analyserNode.getFloatTimeDomainData(pcmData);
+        let sumSquares = 0.0;
+        for (const amplitude of pcmData) { sumSquares += amplitude * amplitude; }
+        if (sumSquares > 300 && state === "game"){
+            scene.remove(sharkMesh)
+            shark.active = false
+            shark.TimeUntilActive = elapsedTime * 1000 + (Math.random() * (12000 - 6000) + 6000)
+            uniforms.waterBaseColor.value.set(seaColors.default.waterBaseColor)
+            uniforms.waterColor.value.set(seaColors.default.waterColor)
+            uniforms.waterTopColor.value.set(seaColors.default.waterTopColor)
+            document.querySelector('#sharkAlert').classList.add('visually-hidden')
+        }
+        window.requestAnimationFrame(onFrame);
+    };
+    window.requestAnimationFrame(onFrame);
 }
 
 window.addEventListener('resize', resizeRenderer)

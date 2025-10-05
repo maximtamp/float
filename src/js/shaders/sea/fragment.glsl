@@ -2,6 +2,9 @@ precision highp float;
 
 uniform vec2 iResolution;
 uniform float iTime;
+uniform vec3 waterColor;
+uniform vec3 waterBaseColor;
+uniform vec3 waterTopColor;
 
 in vec2 vUv;
 in vec3 vPosition;
@@ -26,8 +29,8 @@ out vec4 fragColor;
       const float SEA_CHOPPY = 4.0;
       const float SEA_SPEED = 0.8;
       const float SEA_FREQ = 0.16;
-      const vec3 SEA_BASE = vec3(0.0,0.09,0.18);
-      const vec3 SEA_WATER_COLOR = vec3(0.8,0.9,0.6)*0.6;
+      #define SEA_BASE waterBaseColor
+      #define SEA_WATER_COLOR waterColor
       #define SEA_TIME (1.0 + iTime * SEA_SPEED)
       const mat2 octave_m = mat2(1.6,1.2,-1.2,1.6);
 
@@ -205,6 +208,6 @@ out vec4 fragColor;
     vec2 fragCoord = (vPosition.xz + 50.0) * (iResolution.x / 100.0);
     vec3 color = getPixel(fragCoord, iTime*0.3);
     float highlight = smoothstep(1.0, 2.0, vWaveHeight);
-color += vec3(0.01, 0.3, 0.15) * highlight * 0.13;
+color += waterTopColor * highlight * 0.13;
     fragColor = vec4(color, 1.0);
 }

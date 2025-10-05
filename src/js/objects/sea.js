@@ -5,7 +5,10 @@ import seaFragmentShader from '../shaders/sea/fragment.glsl?raw';
 export const uniforms = {
     iTime: { value: 0 },
     iResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-    uBoatPosition: { value: new THREE.Vector3(0,0,0) }
+    uBoatPosition: { value: new THREE.Vector3(0,0,0) },
+    waterBaseColor: { value: new THREE.Color("#093e74") },
+    waterColor: { value: new THREE.Color("#63773c") },
+    waterTopColor: { value: new THREE.Color("#135d23") }
 };
 
 export const createSea = () => {
