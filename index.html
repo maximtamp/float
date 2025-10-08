@@ -81,6 +81,12 @@
       font-size: 3rem;
       margin-top: -4rem;
     }
+
+    #gameUi{
+      position: fixed;
+      padding: 0.5rem 2rem;
+      background-color: cornflowerblue;
+    }
   </style>
 </head>
 
@@ -98,9 +104,14 @@
   <section id="gameOverMenu" class="visually-hidden">
     <section class="game-over-menu__container">
       <h2>Game Over</h2>
-      <p>Score: 0</p>
-      <button id="startButton">Play Again</button>
+      <p id="totalScore">Score: 0</p>
+      <p id="totalTime"></p>
+      <p id="bestTime"></p>
+      <button id="playAgainButton">Play Again</button>
     </section>
+  </section>
+  <section id="gameUi" class="visually-hidden">
+    <p id="timer">time</p>
   </section>
   <canvas id="c"></canvas>
   <script type="importmap">

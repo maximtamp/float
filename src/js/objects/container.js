@@ -12,6 +12,7 @@ export const createContainer = (containerColor = "#d2760e") => {
 
     const mesh = new THREE.Mesh(geom, mat);
     mesh.receiveShadow = true;
+    mesh.castShadow = true;
 
     return {
         mesh

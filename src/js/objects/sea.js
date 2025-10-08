@@ -25,6 +25,7 @@ export const createSea = () => {
 
     const mesh = new THREE.Mesh(geom, mat);
     mesh.receiveShadow = true;
+    mesh.castShadow = true;
 
     return {
         mesh

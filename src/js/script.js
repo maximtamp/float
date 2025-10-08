@@ -4,6 +4,7 @@ import { createSea, uniforms } from './objects/sea';
 import { createBoat } from './objects/boat';
 import { createContainer } from './objects/container';
 import { createShark } from './objects/shark';
+import { createBorder } from './objects/border';
 
 
 const canvas = document.querySelector('#c');
@@ -24,7 +25,7 @@ camera.lookAt(0, 0, 0);
 
 const scene = new THREE.Scene();
 
-let seaMesh, boatMesh, sharkMesh, containerMesh;
+let seaMesh, boatMesh, sharkMesh, containerMesh, borderMesh;
 
 let elapsedTime = 0
 
@@ -32,6 +33,10 @@ let boatSpeed = 0;
 let boatTilt = 0;
 
 let score = 0;
+let playTime = {
+    startTime: 0,
+    endTime: 0
+}
 let state = "menu";
 
 let shark = {
@@ -71,7 +76,7 @@ const generateContainers = () => {
     for (let i = 0; i < 24; i++) {
         const containerColor = containerColors[Math.floor(Math.random() * containerColors.length)]
         containerMesh = createContainer(containerColor).mesh;
-        containerMesh.position.set((Math.random() - 0.5) * 1000, 0, (Math.random() - 0.5) * 1000)
+        containerMesh.position.set((Math.random() - 0.5) * 1900, 0, (Math.random() - 0.5) * 1900)
         containerMesh.rotation.z = Math.random() * 0.5
         containerMesh.rotation.y = Math.random() * 100
         scene.add(containerMesh);
@@ -95,6 +100,10 @@ const init = () => {
 
     generateContainers()
 
+    borderMesh = createBorder().mesh;
+    borderMesh.receiveShadow = true
+    scene.add(borderMesh);
+
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
     directionalLight.position.set(50, 100, 50);
     directionalLight.castShadow = true;
@@ -102,6 +111,15 @@ const init = () => {
 
     const ambient = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambient);
+
+    directionalLight.shadow.camera.top = 2000;
+    directionalLight.shadow.camera.bottom = - 2000;
+    directionalLight.shadow.camera.left = - 2000;
+    directionalLight.shadow.camera.right = 2000;
+    directionalLight.shadow.camera.near = 1;
+    directionalLight.shadow.camera.far = 2000;
+    directionalLight.shadow.mapSize.width = 5000;
+    directionalLight.shadow.mapSize.height = 5000;
 
     resizeRenderer()
     scene.background = new THREE.Color("#255174")
@@ -113,6 +131,7 @@ const clock = new THREE.Clock();
 const render = () => {
     elapsedTime = clock.getElapsedTime()
     uniforms.iTime.value = elapsedTime;
+
 
     if (keyPressed.ArrowUp) {
         if (boatSpeed <= 0.25) {
@@ -193,12 +212,12 @@ const render = () => {
             boatMesh.position.set(boatParams.xPos, boatParams.yPos, boatParams.zPos)
             boatMesh.rotation.set(boatParams.xRot, boatParams.yRot, boatParams.zRot)
             scene.add(boatMesh)
-            console.log(score)
         }
     })
 
     uniforms.uBoatPosition.value.set(boatMesh.position.x, boatMesh.position.y, boatMesh.position.z);
     if( state === "game"){
+        document.querySelector('#timer').innerHTML = Math.round((elapsedTime - playTime.startTime) * 100) / 100
         if (!shark.active && Math.floor(elapsedTime * 1000) > shark.TimeUntilActive){
             shark.active = true;
             sharkMesh = createShark().mesh;
@@ -232,6 +251,14 @@ const render = () => {
         }
     }
 
+    borderMesh.children.forEach(wall => {
+        const wallBox = new THREE.Box3().setFromObject(wall);
+        if (boatBox.intersectsBox(wallBox)) {
+            boatSpeed = -boatSpeed * 0.5;
+            console.log("appel")
+        }
+    })
+
     renderer.render(scene, camera);
     requestAnimationFrame(render);
 };
@@ -262,6 +289,15 @@ const handleKeyDown = (e) => {
         if (e.key === "ArrowRight") {
             keyPressed.ArrowRight = true
         }
+        if (e.key === "z" && shark.active === true ) {
+            scene.remove(sharkMesh)
+            shark.active = false
+            shark.TimeUntilActive = elapsedTime * 1000 + (Math.random() * (12000 - 6000) + 6000)
+            uniforms.waterBaseColor.value.set(seaColors.default.waterBaseColor)
+            uniforms.waterColor.value.set(seaColors.default.waterColor)
+            uniforms.waterTopColor.value.set(seaColors.default.waterTopColor)
+            document.querySelector('#sharkAlert').classList.add('visually-hidden')
+        }
     } else if (e.key === "Enter") {
         setState("game")
     }
@@ -289,10 +325,10 @@ const setState = (newState) => {
     if(state === "menu"){
         document.querySelector('#menu').classList.remove('visually-hidden')
     } else if (state === "game") {
+        document.querySelector('#gameUi').classList.remove('visually-hidden')
         document.querySelector('#menu').classList.add('visually-hidden')
         document.querySelector('#gameOverMenu').classList.add('visually-hidden')
         shark.TimeUntilActive = elapsedTime * 1000 + (Math.random() * (12000 - 6000) + 6000)
-        console.log(elapsedTime)
         score = 0
         containers.forEach(container => {
             scene.remove(container.mesh);
@@ -310,15 +346,21 @@ const setState = (newState) => {
         boatMesh.position.set(0, 0, 0)
         boatMesh.rotation.set(0, 0, 0)
         scene.add(boatMesh)
+        playTime.startTime = elapsedTime
     } else if (state === "gameOver") {
+        document.querySelector('#gameUi').classList.add('visually-hidden')
         document.querySelector('#gameOverMenu').classList.remove('visually-hidden')
-        document.querySelector('#gameOverMenu p').innerHTML = "Score: " + score
+        document.querySelector('#totalScore').innerHTML = "Score: " + score
+        document.querySelector('#totalTime').innerHTML = Math.round((elapsedTime - playTime.startTime) * 100) / 100 + " Sec"
         keyPressed.ArrowUp = false
         keyPressed.ArrowDown = false
         keyPressed.ArrowLeft = false
         keyPressed.ArrowRight = false
         boatSpeed = 0;
         boatTilt = 0;
+
+        playTime.endTime = elapsedTime
+        console.log(playTime.endTime - playTime.startTime)
     }
 }
 
@@ -339,7 +381,7 @@ const getLocalStream = async () =>  {
         analyserNode.getFloatTimeDomainData(pcmData);
         let sumSquares = 0.0;
         for (const amplitude of pcmData) { sumSquares += amplitude * amplitude; }
-        if (sumSquares > 300 && state === "game"){
+        if (sumSquares > 250 && state === "game"){
             scene.remove(sharkMesh)
             shark.active = false
             shark.TimeUntilActive = elapsedTime * 1000 + (Math.random() * (12000 - 6000) + 6000)
@@ -357,5 +399,6 @@ window.addEventListener('resize', resizeRenderer)
 window.addEventListener('keydown', handleKeyDown)
 window.addEventListener('keyup', handleKeyUp)
 document.querySelector('#startButton').addEventListener('click', handleClickStart)
+document.querySelector('#playAgainButton').addEventListener('click', handleClickStart)
 
 init();
