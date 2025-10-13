@@ -26,6 +26,10 @@ camera.lookAt(0, 0, 0);
 const scene = new THREE.Scene();
 
 let seaMesh, boatMesh, sharkMesh, containerMesh, borderMesh;
+const boatBox = new THREE.Box3()
+const sharkBox = new THREE.Box3()
+const containerBox = new THREE.Box3()
+const wallBox = new THREE.Box3()
 
 let elapsedTime = 0
 
@@ -45,11 +49,12 @@ let shark = {
 }
 
 const seaColors = {
-    default: {
-        waterBaseColor: "#093e74",
-        waterColor: "#63773c",
-        waterTopColor: "#135d23"
-    },
+    default: [
+        { waterBaseColor: "#093e74", waterColor: "#63773c", waterTopColor: "#135d23" },
+        { waterBaseColor: "#1a5a99", waterColor: "#789d50", waterTopColor: "#2b7e36" },
+        { waterBaseColor: "#2b7fbf", waterColor: "#90b66a", waterTopColor: "#3da84a" },
+        { waterBaseColor: "#4ca3e0", waterColor: "#add486", waterTopColor: "#5bcc63" },
+    ],
     red: {
         waterBaseColor: "#740909",
         waterColor: "#ad2c2c",
@@ -58,6 +63,7 @@ const seaColors = {
 }
 
 const containers = []
+const maxContainers = 12;
 const containerColors = ["#3751cf", "#d2760e", "#a31010", "#afafaf", "#dbdada"]
 const colectedContainerColors = []
 
@@ -73,10 +79,10 @@ let keyPressed = {
 }
 
 const generateContainers = () => {
-    for (let i = 0; i < 24; i++) {
+    for (let i = 0; i < maxContainers; i++) {
         const containerColor = containerColors[Math.floor(Math.random() * containerColors.length)]
         containerMesh = createContainer(containerColor).mesh;
-        containerMesh.position.set((Math.random() - 0.5) * 1900, 0, (Math.random() - 0.5) * 1900)
+        containerMesh.position.set((Math.random() - 0.5) * 450, 0, (Math.random() - 0.5) * 450)
         containerMesh.rotation.z = Math.random() * 0.5
         containerMesh.rotation.y = Math.random() * 100
         scene.add(containerMesh);
@@ -134,23 +140,23 @@ const render = () => {
 
 
     if (keyPressed.ArrowUp) {
-        if (boatSpeed <= 0.25) {
+        if (boatSpeed <= 0.35) {
             boatSpeed += 0.002
         }
     }
     if (keyPressed.ArrowDown) {
-        if (boatSpeed >= -0.25) {
+        if (boatSpeed >= -0.35) {
             boatSpeed -= 0.001
         }
     }
     if (boatSpeed != 0 && keyPressed.ArrowLeft) {
-        boatMesh.rotation.y += 0.002
+        boatMesh.rotation.y += 0.005
         if (boatTilt <= 0.1) {
             boatTilt += 0.005
         }
     }
     if (boatSpeed != 0 && keyPressed.ArrowRight) {
-        boatMesh.rotation.y -= 0.002
+        boatMesh.rotation.y -= 0.005
         if (boatTilt >= -0.1) {
             boatTilt -= 0.005
         }
@@ -184,10 +190,10 @@ const render = () => {
 
     camera.lookAt(boatMesh.position);
 
-    const boatBox = new THREE.Box3().setFromObject(boatMesh);
+    boatBox.setFromObject(boatMesh);
 
     containers.forEach((container, index) => {
-        const containerBox = new THREE.Box3().setFromObject(container.mesh);
+        containerBox.setFromObject(container.mesh);
 
         container.mesh.rotation.x = Math.sin(elapsedTime) * 0.15;
         container.mesh.position.y = 3.5 + Math.sin(elapsedTime * 2.0) * 0.5;
@@ -212,6 +218,15 @@ const render = () => {
             boatMesh.position.set(boatParams.xPos, boatParams.yPos, boatParams.zPos)
             boatMesh.rotation.set(boatParams.xRot, boatParams.yRot, boatParams.zRot)
             scene.add(boatMesh)
+
+            if(score === maxContainers){
+                setState("gameWon")
+            } else {
+                uniforms.waterBaseColor.value.set(seaColors.default[Math.floor((score / maxContainers) * seaColors.default.length)].waterBaseColor)
+                uniforms.waterColor.value.set(seaColors.default[Math.floor((score / maxContainers) * seaColors.default.length)].waterColor)
+                uniforms.waterTopColor.value.set(seaColors.default[Math.floor((score / maxContainers) * seaColors.default.length)].waterTopColor)
+            }
+
         }
     })
 
@@ -241,7 +256,7 @@ const render = () => {
             uniforms.waterColor.value.set(seaColors.red.waterColor)
             uniforms.waterTopColor.value.set(seaColors.red.waterTopColor)
     
-            const sharkBox = new THREE.Box3().setFromObject(sharkMesh);
+            sharkBox.setFromObject(sharkMesh);
             if (boatBox.intersectsBox(sharkBox)){
                 document.querySelector('#sharkAlert').classList.add('visually-hidden')
                 setState("gameOver")
@@ -252,7 +267,7 @@ const render = () => {
     }
 
     borderMesh.children.forEach(wall => {
-        const wallBox = new THREE.Box3().setFromObject(wall);
+        wallBox.setFromObject(wall);
         if (boatBox.intersectsBox(wallBox)) {
             boatSpeed = -boatSpeed * 0.5;
             console.log("appel")
@@ -293,9 +308,9 @@ const handleKeyDown = (e) => {
             scene.remove(sharkMesh)
             shark.active = false
             shark.TimeUntilActive = elapsedTime * 1000 + (Math.random() * (12000 - 6000) + 6000)
-            uniforms.waterBaseColor.value.set(seaColors.default.waterBaseColor)
-            uniforms.waterColor.value.set(seaColors.default.waterColor)
-            uniforms.waterTopColor.value.set(seaColors.default.waterTopColor)
+            uniforms.waterBaseColor.value.set(seaColors.default[Math.floor((score / maxContainers) * seaColors.default.length)].waterBaseColor)
+            uniforms.waterColor.value.set(seaColors.default[Math.floor((score / maxContainers) * seaColors.default.length)].waterColor)
+            uniforms.waterTopColor.value.set(seaColors.default[Math.floor((score / maxContainers) * seaColors.default.length)].waterTopColor)
             document.querySelector('#sharkAlert').classList.add('visually-hidden')
         }
     } else if (e.key === "Enter") {
@@ -328,6 +343,7 @@ const setState = (newState) => {
         document.querySelector('#gameUi').classList.remove('visually-hidden')
         document.querySelector('#menu').classList.add('visually-hidden')
         document.querySelector('#gameOverMenu').classList.add('visually-hidden')
+        document.querySelector('#gameWonMenu').classList.add('visually-hidden')
         shark.TimeUntilActive = elapsedTime * 1000 + (Math.random() * (12000 - 6000) + 6000)
         score = 0
         containers.forEach(container => {
@@ -335,9 +351,9 @@ const setState = (newState) => {
         })
         containers.length = 0
         colectedContainerColors.length = 0
-        uniforms.waterBaseColor.value.set(seaColors.default.waterBaseColor)
-        uniforms.waterColor.value.set(seaColors.default.waterColor)
-        uniforms.waterTopColor.value.set(seaColors.default.waterTopColor)
+        uniforms.waterBaseColor.value.set(seaColors.default[Math.floor((score / maxContainers) * seaColors.default.length)].waterBaseColor)
+        uniforms.waterColor.value.set(seaColors.default[Math.floor((score / maxContainers) * seaColors.default.length)].waterColor)
+        uniforms.waterTopColor.value.set(seaColors.default[Math.floor((score / maxContainers) * seaColors.default.length)].waterTopColor)
 
         generateContainers()
        
@@ -351,7 +367,6 @@ const setState = (newState) => {
         document.querySelector('#gameUi').classList.add('visually-hidden')
         document.querySelector('#gameOverMenu').classList.remove('visually-hidden')
         document.querySelector('#totalScore').innerHTML = "Score: " + score
-        document.querySelector('#totalTime').innerHTML = Math.round((elapsedTime - playTime.startTime) * 100) / 100 + " Sec"
         keyPressed.ArrowUp = false
         keyPressed.ArrowDown = false
         keyPressed.ArrowLeft = false
@@ -361,6 +376,34 @@ const setState = (newState) => {
 
         playTime.endTime = elapsedTime
         console.log(playTime.endTime - playTime.startTime)
+    }
+    else if (state === "gameWon") {
+        const totalTime = Math.round((elapsedTime - playTime.startTime) * 100) / 100 + " Sec"
+        document.querySelector('#gameUi').classList.add('visually-hidden')
+        document.querySelector('#gameWonMenu').classList.remove('visually-hidden')
+        document.querySelector('#totalTime').innerHTML = "Current Time: " + totalTime
+
+        const bestTime = parseFloat(localStorage.getItem("bestTime"));
+        if (!isNaN(bestTime)){
+            if (parseFloat(totalTime) < bestTime){
+                localStorage.setItem("bestTime", totalTime)
+                document.querySelector('#bestTime').innerHTML = "Best Time: " + totalTime
+            } else {
+                document.querySelector('#bestTime').innerHTML = "Best Time: " + bestTime
+            }
+        } else {
+            localStorage.setItem("bestTime", totalTime)
+            document.querySelector('#bestTime').innerHTML = "Best Time: " + totalTime
+        }
+
+        keyPressed.ArrowUp = false
+        keyPressed.ArrowDown = false
+        keyPressed.ArrowLeft = false
+        keyPressed.ArrowRight = false
+        boatSpeed = 0;
+        boatTilt = 0;
+
+        playTime.endTime = elapsedTime
     }
 }
 
@@ -385,9 +428,9 @@ const getLocalStream = async () =>  {
             scene.remove(sharkMesh)
             shark.active = false
             shark.TimeUntilActive = elapsedTime * 1000 + (Math.random() * (12000 - 6000) + 6000)
-            uniforms.waterBaseColor.value.set(seaColors.default.waterBaseColor)
-            uniforms.waterColor.value.set(seaColors.default.waterColor)
-            uniforms.waterTopColor.value.set(seaColors.default.waterTopColor)
+            uniforms.waterBaseColor.value.set(seaColors.default[Math.floor((score / maxContainers) * seaColors.default.length)].waterBaseColor)
+            uniforms.waterColor.value.set(seaColors.default[Math.floor((score / maxContainers) * seaColors.default.length)].waterColor)
+            uniforms.waterTopColor.value.set(seaColors.default[Math.floor((score / maxContainers) * seaColors.default.length)].waterTopColor)
             document.querySelector('#sharkAlert').classList.add('visually-hidden')
         }
         window.requestAnimationFrame(onFrame);

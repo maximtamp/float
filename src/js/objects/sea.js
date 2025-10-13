@@ -12,7 +12,7 @@ export const uniforms = {
 };
 
 export const createSea = () => {
-    const geom = new THREE.PlaneGeometry(2000, 2000, 500, 500);
+    const geom = new THREE.PlaneGeometry(1000, 1000, 500, 500);
     geom.rotateX(Math.PI / 2);
 
     const mat = new THREE.RawShaderMaterial({
