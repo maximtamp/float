@@ -31,7 +31,7 @@
       height: 100%;
     }
 
-    #menu, #gameOverMenu{
+    #menu, #gameOverMenu, #gameWonMenu{
       position: fixed;
       backdrop-filter: blur(4px);
       width: 100%;
@@ -42,7 +42,7 @@
       align-items: center;
     }
 
-    .menu__container, .game-over-menu__container{
+    .menu__container, .game-over-menu__container, .game-won-menu__container{
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -95,7 +95,7 @@
       	}
       }
       </script>
-  <script type="module" crossorigin src="/float/assets/index-CzWkJ9NJ.js"></script>
+  <script type="module" crossorigin src="/float/assets/index-Bcco3Pau.js"></script>
 </head>
 
 <body>
@@ -110,13 +110,19 @@
     <p>Scare him away!</p>
   </section>
   <section id="gameOverMenu" class="visually-hidden">
-    <section class="game-over-menu__container">
+    <div class="game-over-menu__container">
       <h2>Game Over</h2>
       <p id="totalScore">Score: 0</p>
+      <button id="playAgainButton">Play Again</button>
+    </div>
+  </section>
+  <section id="gameWonMenu" class="visually-hidden">
+    <div class="game-won-menu__container">
+      <h2>You won</h2>
       <p id="totalTime"></p>
       <p id="bestTime"></p>
       <button id="playAgainButton">Play Again</button>
-    </section>
+    </div>
   </section>
   <section id="gameUi" class="visually-hidden">
     <p id="timer">time</p>
