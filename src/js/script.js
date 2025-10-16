@@ -6,6 +6,25 @@ import { createContainer } from './objects/container';
 import { createShark } from './objects/shark';
 import { createBorder } from './objects/border';
 
+import collectSoundFile from '../assets/sounds/splach.mp3';
+import sharkNearSoundFile from '../assets/sounds/shark-near.mp3';
+import hornSoundFile from '../assets/sounds/horn.mp3';
+import boatSinkSoundFile from '../assets/sounds/sinking.mp3';
+import winSoundFile from '../assets/sounds/win.wav';
+
+const collectSound = new Audio(collectSoundFile);
+const sharkNearSound = new Audio(sharkNearSoundFile);
+const hornSound = new Audio(hornSoundFile);
+const boatSinkSound = new Audio(boatSinkSoundFile);
+const winSound = new Audio(winSoundFile);
+
+const playSound = (sound) => {
+    sound.currentTime = 0;
+    sound.play();
+}
+
+let stream;
+let micDenied = false;
 
 const canvas = document.querySelector('#c');
 const renderer = new THREE.WebGLRenderer({
@@ -50,10 +69,10 @@ let shark = {
 
 const seaColors = {
     default: [
-        { waterBaseColor: "#093e74", waterColor: "#63773c", waterTopColor: "#135d23" },
-        { waterBaseColor: "#1a5a99", waterColor: "#789d50", waterTopColor: "#2b7e36" },
-        { waterBaseColor: "#2b7fbf", waterColor: "#90b66a", waterTopColor: "#3da84a" },
-        { waterBaseColor: "#4ca3e0", waterColor: "#add486", waterTopColor: "#5bcc63" },
+        { waterBaseColor: "#09305a", waterColor: "#4f5c3a", waterTopColor: "#0f3f1a" },
+        { waterBaseColor: "#184a7a", waterColor: "#6c8850", waterTopColor: "#23702b" },
+        { waterBaseColor: "#2360a0", waterColor: "#7a9f5c", waterTopColor: "#35843a" },
+        { waterBaseColor: "#3b87c0", waterColor: "#90b16a", waterTopColor: "#4aa34a" },
     ],
     red: {
         waterBaseColor: "#740909",
@@ -211,6 +230,7 @@ const render = () => {
                 zRot: boatMesh.rotation.z,
             }
 
+            playSound(collectSound)
             scene.remove(boatMesh)
             score++
             document.querySelector('#totalCollected p').innerHTML = score + "/" + maxContainers
@@ -221,6 +241,7 @@ const render = () => {
             scene.add(boatMesh)
 
             if(score === maxContainers){
+                playSound(winSound)
                 setState("gameWon")
             } else {
                 uniforms.waterBaseColor.value.set(seaColors.default[Math.floor((score / maxContainers) * seaColors.default.length)].waterBaseColor)
@@ -233,8 +254,9 @@ const render = () => {
 
     uniforms.uBoatPosition.value.set(boatMesh.position.x, boatMesh.position.y, boatMesh.position.z);
     if( state === "game"){
-        document.querySelector('#timer').innerHTML = Math.round((elapsedTime - playTime.startTime) * 100) / 100
+        document.querySelector('#timer').innerHTML = Math.round((elapsedTime - playTime.startTime)) + " Sec"
         if (!shark.active && Math.floor(elapsedTime * 1000) > shark.TimeUntilActive){
+            playSound(sharkNearSound)
             shark.active = true;
             sharkMesh = createShark().mesh;
             sharkMesh.receiveShadow = true
@@ -260,6 +282,8 @@ const render = () => {
             sharkBox.setFromObject(sharkMesh);
             if (boatBox.intersectsBox(sharkBox)){
                 document.querySelector('#sharkAlert').classList.add('visually-hidden')
+                sharkNearSound.pause()
+                playSound(boatSinkSound)
                 setState("gameOver")
                 scene.remove(sharkMesh)
                 shark.active = false
@@ -271,7 +295,6 @@ const render = () => {
         wallBox.setFromObject(wall);
         if (boatBox.intersectsBox(wallBox)) {
             boatSpeed = -boatSpeed * 0.5;
-            console.log("appel")
         }
     })
 
@@ -315,7 +338,7 @@ const handleKeyDown = (e) => {
             document.querySelector('#sharkAlert').classList.add('visually-hidden')
         }
     } else if (e.key === "Enter") {
-        setState("game")
+        handleClickStart()
     }
 }
 
@@ -383,7 +406,7 @@ const setState = (newState) => {
         const totalTime = Math.round((elapsedTime - playTime.startTime) * 100) / 100 + " Sec"
         document.querySelector('#gameUi').classList.add('visually-hidden')
         document.querySelector('#gameWonMenu').classList.remove('visually-hidden')
-        document.querySelector('#totalTime').innerHTML = "Current Time: " + totalTime
+        document.querySelector('#totalTime').innerHTML = totalTime
 
         const bestTime = parseFloat(localStorage.getItem("bestTime"));
         if (!isNaN(bestTime)){
@@ -409,35 +432,46 @@ const setState = (newState) => {
     }
 }
 
-const handleClickStart = () => {
-    setState("game")
+const handleClickStart = async () => {
+    if (!stream && !micDenied) {
+        await getLocalStream();
+    }
+    setState("game");
 }
 
 const getLocalStream = async () =>  {
     /* https://jameshfisher.com/2021/01/18/measuring-audio-volume-in-javascript */
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-    const audioContext = new AudioContext();
-    const mediaStreamAudioSourceNode = audioContext.createMediaStreamSource(stream);
-    const analyserNode = audioContext.createAnalyser();
-    mediaStreamAudioSourceNode.connect(analyserNode);
-
-    const pcmData = new Float32Array(analyserNode.fftSize);
-    const onFrame = () => {
-        analyserNode.getFloatTimeDomainData(pcmData);
-        let sumSquares = 0.0;
-        for (const amplitude of pcmData) { sumSquares += amplitude * amplitude; }
-        if (sumSquares > 250 && state === "game"){
-            scene.remove(sharkMesh)
-            shark.active = false
-            shark.TimeUntilActive = elapsedTime * 1000 + (Math.random() * (12000 - 6000) + 6000)
-            uniforms.waterBaseColor.value.set(seaColors.default[Math.floor((score / maxContainers) * seaColors.default.length)].waterBaseColor)
-            uniforms.waterColor.value.set(seaColors.default[Math.floor((score / maxContainers) * seaColors.default.length)].waterColor)
-            uniforms.waterTopColor.value.set(seaColors.default[Math.floor((score / maxContainers) * seaColors.default.length)].waterTopColor)
-            document.querySelector('#sharkAlert').classList.add('visually-hidden')
-        }
+    try{
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        const audioContext = new AudioContext();
+        const mediaStreamAudioSourceNode = audioContext.createMediaStreamSource(stream);
+        const analyserNode = audioContext.createAnalyser();
+        mediaStreamAudioSourceNode.connect(analyserNode);
+    
+        const pcmData = new Float32Array(analyserNode.fftSize);
+        const onFrame = () => {
+            analyserNode.getFloatTimeDomainData(pcmData);
+            let sumSquares = 0.0;
+            for (const amplitude of pcmData) { sumSquares += amplitude * amplitude; }
+            if (sumSquares > 250 && state === "game"){
+                sharkNearSound.pause()
+                playSound(hornSound)
+                scene.remove(sharkMesh)
+                shark.active = false
+                shark.TimeUntilActive = elapsedTime * 1000 + (Math.random() * (12000 - 6000) + 6000)
+                uniforms.waterBaseColor.value.set(seaColors.default[Math.floor((score / maxContainers) * seaColors.default.length)].waterBaseColor)
+                uniforms.waterColor.value.set(seaColors.default[Math.floor((score / maxContainers) * seaColors.default.length)].waterColor)
+                uniforms.waterTopColor.value.set(seaColors.default[Math.floor((score / maxContainers) * seaColors.default.length)].waterTopColor)
+                document.querySelector('#sharkAlert').classList.add('visually-hidden')
+            }
+            window.requestAnimationFrame(onFrame);
+        };
         window.requestAnimationFrame(onFrame);
-    };
-    window.requestAnimationFrame(onFrame);
+    } catch (error) {
+        console.error("No mic avilable:", error)
+        alert("A mic is requerd to play this game!")
+        micDenied = true
+    }
 }
 
 window.addEventListener('resize', resizeRenderer)
