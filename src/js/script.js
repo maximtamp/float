@@ -213,6 +213,7 @@ const render = () => {
 
             scene.remove(boatMesh)
             score++
+            document.querySelector('#totalCollected p').innerHTML = score + "/" + maxContainers
             colectedContainerColors.push(container.color)
             boatMesh = createBoat(score, colectedContainerColors).mesh
             boatMesh.position.set(boatParams.xPos, boatParams.yPos, boatParams.zPos)
@@ -344,6 +345,7 @@ const setState = (newState) => {
         document.querySelector('#menu').classList.add('visually-hidden')
         document.querySelector('#gameOverMenu').classList.add('visually-hidden')
         document.querySelector('#gameWonMenu').classList.add('visually-hidden')
+        document.querySelector('#totalCollected p').innerHTML = "0/" + maxContainers
         shark.TimeUntilActive = elapsedTime * 1000 + (Math.random() * (12000 - 6000) + 6000)
         score = 0
         containers.forEach(container => {
@@ -387,13 +389,13 @@ const setState = (newState) => {
         if (!isNaN(bestTime)){
             if (parseFloat(totalTime) < bestTime){
                 localStorage.setItem("bestTime", totalTime)
-                document.querySelector('#bestTime').innerHTML = "Best Time: " + totalTime
+                document.querySelector('#bestTime').innerHTML = "Best Time: " + totalTime + " Sec"
             } else {
-                document.querySelector('#bestTime').innerHTML = "Best Time: " + bestTime
+                document.querySelector('#bestTime').innerHTML = "Best Time: " + bestTime + " Sec"
             }
         } else {
             localStorage.setItem("bestTime", totalTime)
-            document.querySelector('#bestTime').innerHTML = "Best Time: " + totalTime
+            document.querySelector('#bestTime').innerHTML = "Best Time: " + totalTime + " Sec"
         }
 
         keyPressed.ArrowUp = false
