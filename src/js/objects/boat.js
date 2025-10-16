@@ -1,4 +1,4 @@
-import * as THREE from 'https://unpkg.com/three@0.169.0/build/three.module.js';
+import * as THREE from 'three';
 
 export const createBoat = (score = 0, colectedContainerColors) => {
 

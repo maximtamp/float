@@ -1,4 +1,4 @@
-import * as THREE from 'https://unpkg.com/three@0.169.0/build/three.module.js';
+import * as THREE from 'three';
 
 export const createShark = () => {
     const geom = new THREE.BoxGeometry(2, 12, 20);

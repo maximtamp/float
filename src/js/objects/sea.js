@@ -1,4 +1,4 @@
-import * as THREE from 'https://unpkg.com/three@0.169.0/build/three.module.js';
+import * as THREE from 'three';
 import seaVertexShader from '../shaders/sea/vertex.glsl?raw';
 import seaFragmentShader from '../shaders/sea/fragment.glsl?raw';
 

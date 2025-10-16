@@ -1,5 +1,6 @@
-import * as THREE from 'https://unpkg.com/three@0.169.0/build/three.module.js';
-import { OrbitControls } from 'https://unpkg.com/three@0.169.0/examples/jsm/controls/OrbitControls.js';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+
 import { createSea, uniforms } from './objects/sea';
 import { createBoat } from './objects/boat';
 import { createContainer } from './objects/container';
@@ -403,10 +404,11 @@ const setState = (newState) => {
         console.log(playTime.endTime - playTime.startTime)
     }
     else if (state === "gameWon") {
-        const totalTime = Math.round((elapsedTime - playTime.startTime) * 100) / 100 + " Sec"
+        sharkNearSound.pause()
+        const totalTime = Math.round((elapsedTime - playTime.startTime) * 100) / 100
         document.querySelector('#gameUi').classList.add('visually-hidden')
         document.querySelector('#gameWonMenu').classList.remove('visually-hidden')
-        document.querySelector('#totalTime').innerHTML = totalTime
+        document.querySelector('#totalTime').innerHTML = totalTime + " Sec"
 
         const bestTime = parseFloat(localStorage.getItem("bestTime"));
         if (!isNaN(bestTime)){
@@ -474,10 +476,17 @@ const getLocalStream = async () =>  {
     }
 }
 
+const handleClickAgain =  () => {
+    setState("game");
+}
+
 window.addEventListener('resize', resizeRenderer)
 window.addEventListener('keydown', handleKeyDown)
 window.addEventListener('keyup', handleKeyUp)
 document.querySelector('#startButton').addEventListener('click', handleClickStart)
 document.querySelector('#playAgainButton').addEventListener('click', handleClickStart)
+document.querySelectorAll('#playAgainButton').forEach(button => {
+    button.addEventListener('click', handleClickAgain)
+});
 
 init();
