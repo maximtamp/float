@@ -139,7 +139,6 @@ const getLocalStream = async () => {
         window.requestAnimationFrame(onFrame);
     } catch (error) {
         console.error("No mic avilable:", error)
-        alert("A mic is requerd to play this game!")
         micDenied = true
     }
 }
@@ -336,7 +335,7 @@ const containerColisionChecker = () => {
             score++
             document.querySelector('#totalCollected p').innerHTML = score + "/" + maxContainers
             colectedContainerColors.push(container.color)
-            
+
             boatReplace(boatMesh.position.x, boatMesh.position.y, boatMesh.position.z, boatMesh.rotation.x, boatMesh.rotation.y, boatMesh.rotation.z)
 
             if (score === maxContainers) {
@@ -486,10 +485,11 @@ const handleKeyUp = (e) => {
 }
 
 const handleClickStart = async () => {
-    if (!stream && !micDenied) {
-        await getLocalStream();
+    if(micDenied) {
+        alert("A mic is requerd to play this game! You have blocked it, Allow the mic to continue")
+    } else {
+        setState("game");
     }
-    setState("game");
 }
 
 const handleClickAgain = () => {
