@@ -12,7 +12,21 @@
     <section class="menu__container">
       <h1 class="visually-hidden">Float</h1>
       <img src="./public/float-logo.png" alt="">
-      <p>Safe all the containers from the ocean. You dont want you package from china to drown right? But watch out something is comming to get you...</p>
+      <p>Safe all the containers from the ocean. You dont want you package from china to drown right? But watch out something is comming to get you. Use your voice to scare it away...</p>
+      <div class="quality">
+        <div class="quality__text">
+          <p class="quality__label">Normal Quality</p>
+          <p class="quality__dpi">(1 DPI)</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggleQuality">
+          <span class="slider"></span>
+        </label>
+        <div class="quality__text">
+          <p class="quality__label">High Quality</p>
+          <p class="quality__dpi">(2 DPI)</p>
+        </div>
+      </div>
       <button id="startButton">Play</button>
     </section>
   </section>
@@ -24,7 +38,10 @@
     <div class="game-over-menu__container">
       <h2>Game Over</h2>
       <p id="totalScore">Score: 0</p>
-      <button id="playAgainButton">Play Again</button>
+      <div class="buttons">
+        <button id="playAgainButton">Play Again</button>
+        <button id="backHomeButton">Home</button>
+      </div>
     </div>
   </section>
   <section id="gameWonMenu" class="visually-hidden">
@@ -32,7 +49,10 @@
       <h2>You won</h2>
       <p id="bestTime"></p>
       <p id="totalTime"></p>
-      <button id="playAgainButton">Play Again</button>
+      <div class="buttons">
+        <button id="playAgainButton">Play Again</button>
+        <button id="backHomeButton">Home</button>
+      </div>
     </div>
   </section>
   <section id="gameUi" class="visually-hidden">

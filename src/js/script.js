@@ -1,3 +1,4 @@
+/*https://maximtamp.github.io/float/*/
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
@@ -34,6 +35,8 @@ const renderer = new THREE.WebGLRenderer({
     antialias: true,
 })
 renderer.shadowMap.enabled = true;
+renderer.setPixelRatio(1)
+let highQuality = true;
 
 const fov = 90;
 const aspect = window.innerWidth / window.innerHeight;
@@ -72,8 +75,8 @@ const seaColors = {
     default: [
         { waterBaseColor: "#09305a", waterColor: "#4f5c3a", waterTopColor: "#0f3f1a" },
         { waterBaseColor: "#184a7a", waterColor: "#6c8850", waterTopColor: "#23702b" },
-        { waterBaseColor: "#2360a0", waterColor: "#7a9f5c", waterTopColor: "#35843a" },
-        { waterBaseColor: "#3b87c0", waterColor: "#90b16a", waterTopColor: "#4aa34a" },
+        { waterBaseColor: "#2360a0", waterColor: "#7a9f5c", waterTopColor: "#317c36" },
+        { waterBaseColor: "#3b87c0", waterColor: "#90b16a", waterTopColor: "#409b40" },
     ],
     red: {
         waterBaseColor: "#740909",
@@ -84,7 +87,7 @@ const seaColors = {
 
 const containers = []
 const maxContainers = 12;
-const containerColors = ["#3751cf", "#d2760e", "#a31010", "#afafaf", "#dbdada"]
+const containerColors = ["#3751cf", "#d2760e", "#a31010", "#878787"]
 const colectedContainerColors = []
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -102,7 +105,7 @@ const generateContainers = () => {
     for (let i = 0; i < maxContainers; i++) {
         const containerColor = containerColors[Math.floor(Math.random() * containerColors.length)]
         containerMesh = createContainer(containerColor).mesh;
-        containerMesh.position.set((Math.random() - 0.5) * 450, 0, (Math.random() - 0.5) * 450)
+        containerMesh.position.set((Math.random() - 0.5) * 600, 0, (Math.random() - 0.5) * 600)
         containerMesh.rotation.z = Math.random() * 0.5
         containerMesh.rotation.y = Math.random() * 100
         scene.add(containerMesh);
@@ -131,21 +134,21 @@ const init = () => {
     scene.add(borderMesh);
 
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
-    directionalLight.position.set(50, 100, 50);
+    directionalLight.position.set(50, 150, 50);
     directionalLight.castShadow = true;
     scene.add(directionalLight);
 
     const ambient = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambient);
 
-    directionalLight.shadow.camera.top = 2000;
-    directionalLight.shadow.camera.bottom = - 2000;
-    directionalLight.shadow.camera.left = - 2000;
-    directionalLight.shadow.camera.right = 2000;
+    directionalLight.shadow.camera.top = 600;
+    directionalLight.shadow.camera.bottom = -600;
+    directionalLight.shadow.camera.left = -600;
+    directionalLight.shadow.camera.right = 600;
     directionalLight.shadow.camera.near = 1;
-    directionalLight.shadow.camera.far = 2000;
-    directionalLight.shadow.mapSize.width = 5000;
-    directionalLight.shadow.mapSize.height = 5000;
+    directionalLight.shadow.camera.far = 1500;
+    directionalLight.shadow.mapSize.width = 4096;
+    directionalLight.shadow.mapSize.height = 4096;
 
     resizeRenderer()
     scene.background = new THREE.Color("#255174")
@@ -259,9 +262,17 @@ const render = () => {
         if (!shark.active && Math.floor(elapsedTime * 1000) > shark.TimeUntilActive){
             playSound(sharkNearSound)
             shark.active = true;
+
+            let xPosShark, zPosShark;
+
+            do {
+                xPosShark = boatMesh.position.x + (Math.random() * 150 * 2 - 150)
+                zPosShark = boatMesh.position.z + (Math.random() * 150 * 2 - 150)
+            } while (Math.abs(xPosShark - boatMesh.position.x) < 100 || Math.abs(zPosShark - boatMesh.position.z) < 100 || Math.abs(xPosShark) > 500 || Math.abs(zPosShark) > 500);
+
             sharkMesh = createShark().mesh;
             sharkMesh.receiveShadow = true
-            sharkMesh.position.set(boatMesh.position.x + ((Math.random() - 0.5) * (250 - 100) + 100), 3.5, boatMesh.position.z + ((Math.random() - 0.5) * (250 - 100) + 100))
+            sharkMesh.position.set(xPosShark, 3.5, zPosShark)
             scene.add(sharkMesh);
             document.querySelector('#sharkAlert').classList.remove('visually-hidden')
         } else if (shark.active){
@@ -305,8 +316,11 @@ const render = () => {
 
 const resizeRenderer = () => {
     const canvas = renderer.domElement;
-    const width = canvas.clientWidth * window.devicePixelRatio | 0;
-    const height = canvas.clientHeight * window.devicePixelRatio | 0;
+    const pixelRatio = highQuality ? 1 : window.devicePixelRatio;
+
+    const width = canvas.clientWidth * pixelRatio | 0;
+    const height = canvas.clientHeight * pixelRatio | 0;
+
     const needResize = canvas.width !== width || canvas.height !== height;
     if (needResize) {
         renderer.setSize(width, height, false);
@@ -330,6 +344,8 @@ const handleKeyDown = (e) => {
             keyPressed.ArrowRight = true
         }
         if (e.key === "z" && shark.active === true ) {
+            sharkNearSound.pause()
+            playSound(hornSound)
             scene.remove(sharkMesh)
             shark.active = false
             shark.TimeUntilActive = elapsedTime * 1000 + (Math.random() * (12000 - 6000) + 6000)
@@ -364,6 +380,8 @@ const setState = (newState) => {
     state = newState;
     if(state === "menu"){
         document.querySelector('#menu').classList.remove('visually-hidden')
+        document.querySelector('#gameOverMenu').classList.add('visually-hidden')
+        document.querySelector('#gameWonMenu').classList.add('visually-hidden')
     } else if (state === "game") {
         document.querySelector('#gameUi').classList.remove('visually-hidden')
         document.querySelector('#menu').classList.add('visually-hidden')
@@ -479,14 +497,35 @@ const getLocalStream = async () =>  {
 const handleClickAgain =  () => {
     setState("game");
 }
+const handleClickHome = () => {
+    setState("menu");
+}
+
+const handleClickPerformance = () => {
+    highQuality = !highQuality;
+
+    if(highQuality){
+        renderer.setPixelRatio(1)
+    } else {
+        renderer.setPixelRatio(window.devicePixelRatio)
+    }
+
+    const canvas = renderer.domElement;
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+
+    camera.updateProjectionMatrix();
+}
 
 window.addEventListener('resize', resizeRenderer)
 window.addEventListener('keydown', handleKeyDown)
 window.addEventListener('keyup', handleKeyUp)
 document.querySelector('#startButton').addEventListener('click', handleClickStart)
-document.querySelector('#playAgainButton').addEventListener('click', handleClickStart)
 document.querySelectorAll('#playAgainButton').forEach(button => {
     button.addEventListener('click', handleClickAgain)
 });
+document.querySelectorAll('#backHomeButton').forEach(button => {
+    button.addEventListener('click', handleClickHome)
+});
+document.querySelector('#toggleQuality').addEventListener('change', handleClickPerformance)
 
 init();
