@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { sharkColor } from '../constants/colors';
 
 export const createShark = () => {
     const geom = new THREE.ConeGeometry(5, 20, 6);
@@ -6,7 +7,7 @@ export const createShark = () => {
     geom.rotateX(Math.PI / 2);
 
     const mat = new THREE.MeshPhongMaterial({
-        color: "#6bb1d9",
+        color: sharkColor,
         flatShading: true
     });
 

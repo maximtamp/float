@@ -1,38 +1,39 @@
 import * as THREE from 'three';
+import { boatColors } from '../constants/colors';
 
 export const createBoat = (score = 0, colectedContainerColors) => {
 
     const mesh = new THREE.Object3D();
 
-    const geomCockpit = new THREE.CylinderGeometry(10, 10, 40, 50, 2, false, Math.PI * 0.5, Math.PI * 1);
-    const matCockpit = new THREE.MeshPhongMaterial({ color: "#1f1f1f", flatShading: true });
-    const cockpit = new THREE.Mesh(geomCockpit, matCockpit);
-    cockpit.rotateX(-Math.PI / 2);
-    cockpit.castShadow = true;
-    cockpit.receiveShadow = true;
-    mesh.add(cockpit);
+    const geomBottom = new THREE.CylinderGeometry(10, 10, 40, 50, 2, false, Math.PI * 0.5, Math.PI * 1);
+    const matBottom = new THREE.MeshPhongMaterial({ color: boatColors.secondary, flatShading: true });
+    const bottom = new THREE.Mesh(geomBottom, matBottom);
+    bottom.rotateX(-Math.PI / 2);
+    bottom.castShadow = true;
+    bottom.receiveShadow = true;
+    mesh.add(bottom);
 
-    const geomfloor = new THREE.BoxGeometry(20, 2, 40, 1, 1, 1);
-    const matfloor = new THREE.MeshPhongMaterial({ color: "#dedede", flatShading: true });
-    const floor = new THREE.Mesh(geomfloor, matfloor);
+    const geomFloor = new THREE.BoxGeometry(20, 2, 40, 1, 1, 1);
+    const matFloor = new THREE.MeshPhongMaterial({ color: boatColors.primary, flatShading: true });
+    const floor = new THREE.Mesh(geomFloor, matFloor);
     floor.position.y = 1;
     floor.castShadow = true;
     floor.receiveShadow = true;
     mesh.add(floor);
 
-    const geomconsole = new THREE.BoxGeometry(15, 15, 8, 1, 1, 1);
-    const matconsole = new THREE.MeshPhongMaterial({ color: "#dedede", flatShading: true });
-    const console = new THREE.Mesh(geomconsole, matconsole);
-    console.position.y = 2;
-    console.position.z = 15;
-    console.castShadow = true;
-    console.receiveShadow = true;
-    mesh.add(console);
+    const geomCockpit = new THREE.BoxGeometry(15, 15, 8, 1, 1, 1);
+    const matCockpit = new THREE.MeshPhongMaterial({ color: boatColors.primary, flatShading: true });
+    const cockpit = new THREE.Mesh(geomCockpit, matCockpit);
+    cockpit.position.y = 2;
+    cockpit.position.z = 15;
+    cockpit.castShadow = true;
+    cockpit.receiveShadow = true;
+    mesh.add(cockpit);
 
     for (let i = 0; i < score; i++) {
-        const geomcontainer = new THREE.BoxGeometry(8, 3, 3, 1, 1, 1);
-        const matcontainer = new THREE.MeshPhongMaterial({ color: colectedContainerColors[i], flatShading: true });
-        const container = new THREE.Mesh(geomcontainer, matcontainer);
+        const geomContainer = new THREE.BoxGeometry(8, 3, 3, 1, 1, 1);
+        const matContainer = new THREE.MeshPhongMaterial({ color: colectedContainerColors[i], flatShading: true });
+        const container = new THREE.Mesh(geomContainer, matContainer);
         if (i < 6 || i > 11 && i < 18){
             container.position.x = -5;
             if (i > 11 && i < 18){

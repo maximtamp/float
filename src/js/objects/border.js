@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { borderColor } from '../constants/colors';
 
 export const createBorder = () => {
     const mesh = new THREE.Object3D();
@@ -8,13 +9,14 @@ export const createBorder = () => {
         { x: 0, z: -500, width: 1016, length: 16 },
         { x: -500, z: 0, width: 16, length: 1016 },
     ]
+    
     for (let i = 0; i < 4; i++) {
         const geom = new THREE.BoxGeometry(wallCordinats[i].width, wallCordinats[i].length, 16);
     
         geom.rotateX(Math.PI / 2);
     
         const mat = new THREE.MeshPhongMaterial({
-            color: "#1a5a99",
+            color: borderColor,
             flatShading: true
         });
     
