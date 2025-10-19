@@ -122,7 +122,7 @@ const getLocalStream = async () => {
             analyserNode.getFloatTimeDomainData(pcmData);
             let sumSquares = 0.0;
             for (const amplitude of pcmData) { sumSquares += amplitude * amplitude; }
-            if (sumSquares > 250 && state === "game") {
+            if (sumSquares > 100 && state === "game") {
                 sharkNearSound.pause()
                 playSound(hornSound)
 
