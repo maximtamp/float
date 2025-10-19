@@ -21,16 +21,19 @@ void main() {
     vec3 pos = position;
     float y = 0.0;
 
+    // laag 1
     float freq1 = 0.1;
     float amp1 = 2.0;
     y += sin(pos.x * freq1 + iTime) * amp1;
     y += cos(pos.z * freq1 * 0.7 + iTime * 1.2) * amp1 * 0.5;
 
+    // laag 2 (kortere golven)
     float freq2 = 0.3;
     float amp2 = 0.5;
     y += sin(pos.x * freq2 * 2.3 + iTime * 1.5 + hash(pos.x+pos.z)) * amp2;
     y += cos(pos.z * freq2 * 1.7 + iTime * 1.8 + hash(pos.z-pos.x)) * amp2;
 
+    // laag 3 (nog kortere, fijne rimpels)
     float freq3 = 0.7;
     float amp3 = 0.2;
     y += sin(pos.x * freq3 * 3.5 + iTime * 2.0 + hash(pos.x*0.5)) * amp3;
