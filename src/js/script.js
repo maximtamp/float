@@ -279,11 +279,11 @@ const setState = (newState) => {
 }
 
 const boatMovement = () => {
-    if (keyPressed.ArrowUp && boatSpeed <= 0.35) {
-        boatSpeed += 0.002
+    if (keyPressed.ArrowUp && boatSpeed <= 0.4) {
+        boatSpeed += 0.005
     }
-    if (keyPressed.ArrowDown && boatSpeed >= -0.35) {
-        boatSpeed -= 0.001
+    if (keyPressed.ArrowDown && boatSpeed >= -0.3) {
+        boatSpeed -= 0.005
     }
     if (boatSpeed != 0 && keyPressed.ArrowLeft) {
         boatMesh.rotation.y += 0.005
@@ -308,9 +308,9 @@ const boatMovement = () => {
     boatMesh.position.add(forward.clone().multiplyScalar(boatSpeed));
 
     if (boatSpeed > 0) {
-        boatSpeed -= 0.0005
+        boatSpeed -= 0.002
     } else if (boatSpeed < 0) {
-        boatSpeed += 0.0005
+        boatSpeed += 0.002
     }
 
     if (boatTilt > 0) {
@@ -372,7 +372,7 @@ const sharkRun = () => {
             const test = new THREE.Vector3(0, 0, -1);
             test.applyQuaternion(sharkMesh.quaternion);
             sharkMesh.lookAt(boatMesh.position);
-            sharkMesh.position.add(test.clone().multiplyScalar(-0.5));
+            sharkMesh.position.add(test.clone().multiplyScalar(-0.7));
             sharkMesh.rotation.z = Math.sin(elapsedTime) * 0.25;
 
             camera.position.x = boatMesh.position.x
